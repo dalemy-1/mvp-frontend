@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MVP 前端用户页（Next.js Pages Router）+ Supabase 主库
 
-## Getting Started
+## 你已确认的前提
+- 方案 A：一个用户只属于一个 team（登录后自动取唯一 team_id）
+- 前端用户提交订单：**不允许** product_id 为空（必须选产品）
 
-First, run the development server:
+## 你需要准备的环境变量（Vercel / 本地）
+- NEXT_PUBLIC_SUPABASE_URL
+- NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+> 注意：此 MVP 不包含注册（Sign up），只包含登录（Sign in）。
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 主要页面
+- /login 登录
+- /app 我的订单列表
+- /orders/new 新建订单（必须选产品）
+- /orders/[id] 订单详情：上传留评截图/填留评链接；上传返款截图
+- /admin/orders/[id] 管理员页：按状态机按钮推进（调用 admin_set_order_status_v2）
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Storage 约定
+Bucket: order-files  
+Path:
+teams/{team_id}/orders/{order_id}/{type}/{timestamp}_{filename}
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+type:
+- order_screenshot
+- review_screenshot
+- payout_screenshot
+- other
 
-## Learn More
+## 需要的 Supabase 表/函数
+- 已执行：supabase_schema_v1.sql
+- 已执行：supabase_schema_patch_v1_1_status_rpc.sql（可选）
+- 已执行：supabase_schema_patch_v1_2_admin_status_v2.sql
+- 已执行：supabase_schema_patch_v1_3_strict_guard_noop.sql
 
-To learn more about Next.js, take a look at the following resources:
+其中 MVP 依赖：
+- public.team_members（查询 team_id、role）
+- public.products（下拉选择产品）
+- public.orders（insert / list / detail / update review_link）
+- public.order_attachments（插入附件记录）
+- Storage bucket: order-files（上传文件）
+- RPC: public.admin_set_order_status_v2
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 如何集成到你的仓库
+把本 zip 内的这些文件覆盖/新增到你的 Next.js 仓库（Pages Router）：
+- /lib/**
+- /pages/login.tsx
+- /pages/index.tsx
+- /pages/app.tsx
+- /pages/orders/new.tsx
+- /pages/orders/[id].tsx
+- /pages/admin/orders/[id].tsx
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+如果你仓库已经有同名文件，请以你现有的路由为准，手动合并。
