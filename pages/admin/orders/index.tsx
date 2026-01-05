@@ -61,6 +61,15 @@ export default function AdminOrdersListPage() {
 
   const isAdmin = useMemo(() => role === "owner" || role === "admin" || role === "manager", [role]);
 
+  const selectedIds = useMemo(() => Object.keys(selected).filter((k) => selected[k]), [selected]);
+  const allCheckedOnPage = useMemo(() => rows.length > 0 && rows.every((r) => selected[r.id]), [rows, selected]);
+
+  function setAllOnPage(checked: boolean) {
+    const next = { ...selected };
+    for (const r of rows) next[r.id] = checked;
+    setSelected(next);
+  }
+
   async function load() {
     setLoading(true);
     setErr(null);
